@@ -19,6 +19,7 @@ const circleRadius = 30;
 const sound = new Audio('teleport.mp3');
 
 let score = 0;
+let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
 let lastTeleportTime = Date.now();
 
 let shakeDuration = 0;
@@ -47,7 +48,8 @@ function createRedCircles() {
             x: randomRange(circleRadius, canvas.width - circleRadius),
             y: randomRange(circleRadius, canvas.height - circleRadius),
             radius: circleRadius,
-            color: 'red'
+            color: 'red',
+            shadowColor: `hsla(${randomRange(0, 360)}, 100%, 50%, 0.5)`,
         });
     }
 }
@@ -83,20 +85,24 @@ function drawCircles() {
             ctx.translate(shakeX, shakeY);
         }
 
+        // Add a 3D effect
+        let gradient = ctx.createRadialGradient(circle.x - circle.radius / 3, circle.y - circle.radius / 3, circle.radius / 10, circle.x, circle.y, circle.radius);
+        gradient.addColorStop(0, "white");
+        gradient.addColorStop(1, "red");
+
         ctx.beginPath();
         ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "red";
-        
-        // Add shadow properties
-        ctx.shadowColor = "rgba(100, 100, 100, 0.5)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetX = 5;
-        ctx.shadowOffsetY = 5;
-        
+
+        ctx.fillStyle = gradient;
+
+        ctx.shadowColor = circle.shadowColor;
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 10;
+        ctx.shadowOffsetY = 10;
+
         ctx.fill();
         ctx.closePath();
-        
-        // Reset shadow properties to avoid affecting other drawings
+
         ctx.shadowColor = "transparent";
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
@@ -115,16 +121,24 @@ function teleportCircle(circle) {
     circle.x = randomRange(circleRadius, canvas.width - circleRadius);
     circle.y = randomRange(circleRadius, canvas.height - circleRadius);
     
+    // Change the circle's color
+    circle.shadowColor = `hsla(${randomRange(0, 360)}, 100%, 50%, 0.5)`;
+    
     // Play the sound
     sound.play();
     
     // Update the score and last teleport time
     score++;
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+    }
     lastTeleportTime = currentTime;
 
     confettiCount = Math.min(75, score + 1);
     
     console.log("Score:", score); // Optional: Log the score to the console
+    console.log("High Score:", highScore); // Optional: Log the high score to the console
 }
 
 function drawScore() {
@@ -149,6 +163,7 @@ function drawScore() {
     ctx.font = '48px Arial';
     ctx.fillStyle = 'green';
     ctx.fillText('Score: ' + score, 20, 58);
+    ctx.fillText('High Score: ' + highScore, 20, 120);
 
     if (shakeDuration > 0) {
         ctx.restore();
@@ -185,4 +200,3 @@ canvas.addEventListener('mousemove', (event) => {
 createRedCircles();
 drawCircles();
 animate();
-//
