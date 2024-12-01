@@ -135,8 +135,6 @@ function teleportCircle(circle) {
         localStorage.setItem('highScore', highScore);
     }
     lastTeleportTime = currentTime;
-
-    confettiCount = Math.min(75, score + 1);
     
     console.log("Score:", score); // Optional: Log the score to the console
     console.log("High Score:", highScore); // Optional: Log the high score to the console
@@ -146,7 +144,7 @@ function drawScore() {
     const currentTime = Date.now();
     if (currentTime - lastTeleportTime > 2000) {
         score = 0;
-        confettiCount = Math.min(75, score + 1);
+        confettiCount = 1;
     }
 
     if (score > 10) {
@@ -171,8 +169,11 @@ function drawScore() {
     }
 }
 
+let confettiCreatedThisFrame = false;
+
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiCreatedThisFrame = false;
     updateConfetti();
     drawCircles();
     drawConfetti();
@@ -180,13 +181,29 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-canvas.addEventListener('mousemove', (event) => {
+canvas.addEventListener('mousemove', handleMouseMove);
+canvas.addEventListener('touchmove', handleTouchMove);
+
+function handleMouseMove(event) {
     const mouseX = event.clientX;
     const mouseY = event.clientY;
+    confettiCount = Math.min(50, score + 1);
+    handleMove(mouseX, mouseY);
+}
 
+function handleTouchMove(event) {
+    const touch = event.touches[0];
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+    // Lower count on mobile
+    confettiCount = Math.min(20, score + 1);
+    handleMove(touchX, touchY);
+}
+
+function handleMove(x, y) {
     redCircles.forEach(circle => {
-        const dx = mouseX - circle.x;
-        const dy = mouseY - circle.y;
+        const dx = x - circle.x;
+        const dy = y - circle.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < circle.radius) {
@@ -195,8 +212,11 @@ canvas.addEventListener('mousemove', (event) => {
     });
 
     drawCircles();
-    createConfetti(event.clientX, event.clientY);
-});
+    if (!confettiCreatedThisFrame) {
+        createConfetti(x, y);
+        confettiCreatedThisFrame = true;
+    }
+}
 
 createRedCircles();
 drawCircles();
