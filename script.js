@@ -82,7 +82,8 @@ function drawCircles() {
             const shakeX = Math.random() * shakeIntensity - shakeIntensity / 2;
             const shakeY = Math.random() * shakeIntensity - shakeIntensity / 2;
             ctx.save();
-            ctx.translate(shakeX, shakeY);
+            // Disable screenshake due to feedback that it was nauseating
+            // ctx.translate(shakeX, shakeY);
         }
 
         // Add a 3D effect
